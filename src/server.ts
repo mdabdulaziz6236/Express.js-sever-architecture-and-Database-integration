@@ -27,7 +27,7 @@ const initDB = async () => {
 
       )
       `)
-      console.log("Database connnected successfully!")
+    console.log("Database connnected successfully!")
   } catch (error) {
     console.log(error)
   }
@@ -42,25 +42,47 @@ app.get('/', (req: Request, res: Response) => {
   })
 })
 
-app.post("/", async (req: Request, res: Response) => {
+app.post("/api/users", async (req: Request, res: Response) => {
   // console.log(req.body)
-  const { name, email, password,age } = req.body;
-try{
-  const result = await pool.query(`
+  const { name, email, password, age } = req.body;
+  try {
+    const result = await pool.query(`
     INSERT INTO users(name, email,password, age ) VALUES($1,$2,$3,$4)
     RETURNING *
-    `,[name,email,password,age])
-  res.status(201).json({
-    message: "User created successfully.",
-    data: result.rows[0]
-  })
-}catch(error:any){
-   res.status(500).json({
-    message: error.message,
-    error:error
-  })
-}
+    `, [name, email, password, age])
+    res.status(201).json({
+      success: true,
+      message: "User created successfully.",
+      data: result.rows[0]
+    })
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      error: error
+    })
+  }
 })
+
+app.get('/api/users', async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT * FROM users
+      `)
+    res.status(200).json({
+      success: true,
+      message: 'Users retrived successfullly.',
+      data: result.rows
+    })
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      error: error
+    })
+  }
+})
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
