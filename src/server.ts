@@ -1,15 +1,15 @@
 import express, { type Application, type Request, type Response } from 'express'
 import { Pool } from 'pg'
+import config from './config'
 const app: Application = express()
-const port = 5000
+const port = config.port
 app.use(express.json())
 app.use(express.text())
 app.use(express.urlencoded({ extended: true })) // usaslly nested data ney na tai {extended: true}
-import dotenv from "dotenv";
-dotenv.config()
+
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
+  connectionString: config.connection_string
 
 })
 const initDB = async () => {
@@ -164,10 +164,10 @@ app.delete('/api/users/:id', async (req: Request, res: Response) => {
     }
 
     res.status(200).json({
-    success: true,
-    message: "User deleted successfully.",
-    data: {}
-  })
+      success: true,
+      message: "User deleted successfully.",
+      data: {}
+    })
 
   } catch (error: any) {
     res.status(500).json({
@@ -178,5 +178,5 @@ app.delete('/api/users/:id', async (req: Request, res: Response) => {
   }
 })
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  console.log(`Sever is running on port ${port}`)
 })
