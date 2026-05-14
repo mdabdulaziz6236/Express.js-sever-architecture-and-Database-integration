@@ -63,7 +63,7 @@ app.post("/api/users", async (req: Request, res: Response) => {
     })
   }
 })
-
+/* Get all users */
 app.get('/api/users', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`
@@ -82,7 +82,7 @@ app.get('/api/users', async (req: Request, res: Response) => {
     })
   }
 })
-
+/* Get single user with id */
 app.get('/api/users/:id', async (req: Request, res: Response) => {
   // const {id} = req.params;
   const id = req.params.id;
@@ -93,7 +93,7 @@ app.get('/api/users/:id', async (req: Request, res: Response) => {
       `, [id])
 
     if (result.rows.length === 0) {
-      res.status(500).json({
+      res.status(404).json({
         success: false,
         message: "User Not Found!",
         data: {}
@@ -112,6 +112,36 @@ app.get('/api/users/:id', async (req: Request, res: Response) => {
       error: error
     })
   }
+})
+/* Update user with PUT mathod */
+app.put('/api/users/:id', async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const { name, password, age, is_active, } = req.body;
+  const result = await pool.query(`
+    UPDATE users SET name=$1,password=$2,age=$3,is_active=$4
+    WHERE id=$5 RETURNING *
+    `, [name, password, age, is_active, id])
+  if (result.rows.length === 0) {
+    res.status(404).json({
+      success: false,
+      message: "User Not Found!"
+    })
+  }
+  res.status(200).json({
+    success: true,
+    message: "User updated successfully.",
+    data: result.rows[0]
+  })
+  try {
+
+  } catch (error: any) {
+    res.status(404).json({
+      success: false,
+      message: error.message,
+      error: error
+    })
+  }
+
 })
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
