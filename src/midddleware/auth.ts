@@ -2,7 +2,11 @@ import type { NextFunction, Request, Response } from "express"
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import config from "../config";
 import { pool } from "../db";
-const auth = () => {
+import type { ROLES } from "../types";
+
+
+
+const auth = (...roles: ROLES[]) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
 
@@ -38,6 +42,13 @@ const auth = () => {
                 })
             }
 
+            if (roles.length && !roles.includes(user.role)) {
+                res.status(400).json({
+                    success: false,
+                    message: "Invalid Role!"
+                })
+            }
+            
             req.user = decoded
             next()
         } catch (error) {
