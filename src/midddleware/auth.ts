@@ -4,34 +4,46 @@ import config from "../config";
 import { pool } from "../db";
 const auth = () => {
     return async (req: Request, res: Response, next: NextFunction) => {
-        const token = req.headers.authorization;
+        try {
 
-        console.log(token)
-        if (!token) {
-            res.status(401).json({
-                success: false,
-                message: "Unauthorized access."
-            })
-        }
+            // 1. check if the token exists
+            // 2. verify the token 
+            // 3. find the user from DB
+            // 4. if the user active or not?
 
-        const decoded = jwt.verify(token as string, config.secret as string) as JwtPayload
-        const userData = await pool.query(` 
+            const token = req.headers.authorization;
+
+            if (!token) {
+                res.status(401).json({
+                    success: false,
+                    message: "Unauthorized access."
+                })
+            }
+
+            const decoded = jwt.verify(token as string, config.secret as string) as JwtPayload
+            const userData = await pool.query(` 
             SELECT * FROM users WHERE email=$1
             `, [decoded.email])
-        const user = userData.rows[0]
-        if (userData.rowCount === 0) {
-            res.status(401).json({
-                success: false,
-                message: "User not found!"
-            })
+            const user = userData.rows[0]
+            if (userData.rowCount === 0) {
+                res.status(401).json({
+                    success: false,
+                    message: "User not found!"
+                })
+            }
+            if (!user.is_active) {
+                res.status(403).json({
+                    success: false,
+                    message: "Forbidden!"
+                })
+            }
+
+            req.user = decoded
+            next()
+        } catch (error) {
+            next(error)
         }
-        if (!user.is_active) {
-            res.status(403).json({
-                success: false,
-                message: "Forbidden!"
-            })
-        }
-        next()
+
     }
 }
 
